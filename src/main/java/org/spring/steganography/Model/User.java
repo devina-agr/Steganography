@@ -3,8 +3,9 @@ package org.spring.steganography.Model;
 public class User {
 
     String id;
-    String email;
     String name;
+    String email;
+    String key;
     String imgUrl;
 
 }
