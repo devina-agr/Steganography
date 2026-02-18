@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class UserController {
 
-     public ResponseEntity<User> getAllUsers(@AuthenticationPrincipal UserPrincipal userPrincipal){}
+     public ResponseEntity<User> getAllUsers(@AuthenticationPrincipal UserPrincipal userPrincipal){
+
+     }
 
 
 }

@@ -1,14 +1,19 @@
 package org.spring.steganography.Model;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
+@Component
+@Document(collection = "StegoImg")
 public class StegoImg {
 
     @Id
     private String id;
     private String userId;
+    private String imgName;
     private String encodedImgUrl;
     private LocalDateTime createdAt;
     private long imgSize;
@@ -51,5 +56,13 @@ public class StegoImg {
 
     public void setImgSize(long imgSize) {
         this.imgSize = imgSize;
+    }
+
+    public String getImgName() {
+        return imgName;
+    }
+
+    public void setImgName(String imgName) {
+        this.imgName = imgName;
     }
 }
