@@ -3,7 +3,9 @@ package org.spring.steganography.Util;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+import java.security.MessageDigest;
 import java.security.SecureRandom;
+import java.util.Base64;
 
 public class KeyDerivationUtil {
 
@@ -24,6 +26,17 @@ public class KeyDerivationUtil {
         }
         catch(Exception e){
             throw new RuntimeException("Key derivation failed ",e);
+        }
+    }
+
+    public static String hashKey(byte[] key){
+        try{
+            MessageDigest messageDigest=MessageDigest.getInstance("SHA-256");
+            byte[] hash=messageDigest.digest(key);
+            return Base64.getEncoder().encodeToString(hash);
+        }
+        catch (Exception e){
+            throw new RuntimeException("key hashing failed ",e);
         }
     }
 
