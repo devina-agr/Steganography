@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 
 @Component
-@Document(collection = "StegoImg")
-public class StegoImg {
+@Document(collection = "StegoRecords")
+public class StegoRecords {
 
     @Id
     private String id;
@@ -16,6 +16,7 @@ public class StegoImg {
     private String imgName;
     private String encodedImgUrl;
     private LocalDateTime createdAt;
+    private String secretKeyHash;
     private long imgSize;
 
     public String getId() {
@@ -64,5 +65,13 @@ public class StegoImg {
 
     public void setImgName(String imgName) {
         this.imgName = imgName;
+    }
+
+    public String getSecretKeyHash() {
+        return secretKeyHash;
+    }
+
+    public void setSecretKeyHash(String secretKeyHash) {
+        this.secretKeyHash = secretKeyHash;
     }
 }
