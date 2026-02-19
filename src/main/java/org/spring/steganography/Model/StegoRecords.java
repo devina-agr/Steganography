@@ -1,13 +1,15 @@
 package org.spring.steganography.Model;
 
+import lombok.Builder;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
-@Component
+
 @Document(collection = "StegoRecords")
+@Builder
 public class StegoRecords {
 
     @Id
@@ -18,6 +20,7 @@ public class StegoRecords {
     private LocalDateTime createdAt;
     private String secretKeyHash;
     private long imgSize;
+
 
     public String getId() {
         return id;
@@ -74,4 +77,6 @@ public class StegoRecords {
     public void setSecretKeyHash(String secretKeyHash) {
         this.secretKeyHash = secretKeyHash;
     }
+
+
 }
