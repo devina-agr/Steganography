@@ -10,7 +10,7 @@ public class AdminInviteResponse {
     private LocalDateTime expiresAt;
     private boolean used;
 
-    public AdminInviteResponse(String email, String invitedBy, String inviteToken, LocalDateTime expiresAt, boolean used) {
+    public AdminInviteResponse(String email, String invitedBy, String inviteToken, LocalDateTime expiresAt, boolean used, LocalDateTime sentAt) {
     }
 
     public String getInvitedToEmail() {

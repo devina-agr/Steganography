@@ -15,7 +15,13 @@ public class StegoRecordMapper {
             long imgSize
     ){
         return StegoRecords.builder()
-                .userId()
+                .userId(userId)
+                .imgName(imgName)
+                .encodedImgUrl(encodedImgUrl)
+                .imgSize(imgSize)
+                .createdAt(createdAt)
+                .secretKeyHash(secretKeyHash)
+                .build();
 
     }
 

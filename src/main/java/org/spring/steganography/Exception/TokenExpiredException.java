@@ -1,4 +1,12 @@
 package org.spring.steganography.Exception;
 
-public class TokenExpiredException {
+public class TokenExpiredException extends RuntimeException{
+
+    public TokenExpiredException(String message) {
+        super(message);
+    }
+
+    public TokenExpiredException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
