@@ -25,7 +25,15 @@ public class GlobalExceptionHandler {
         return buildResponse(e.getMessage(), HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler(UnAuthorizedActionException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorized(UnAuthorizedActionException e){
+        return buildResponse(e.getMessage(), HttpStatus.FORBIDDEN);
+    }
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGeneral(Exception e){
+        return buildResponse("Internal Server Error",HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
 
     private ResponseEntity<ErrorResponse> buildResponse(String message, HttpStatus status) {
