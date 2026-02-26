@@ -1,5 +1,4 @@
 package org.spring.steganography.Security;
-
 import org.jspecify.annotations.Nullable;
 import org.spring.steganography.Model.User;
 import org.springframework.security.core.GrantedAuthority;

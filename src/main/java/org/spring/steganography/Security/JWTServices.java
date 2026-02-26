@@ -1,5 +1,4 @@
 package org.spring.steganography.Security;
-
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,6 +47,4 @@ public class JWTServices {
 
         return expiration.before(new Date());
     }
-
-
 }
