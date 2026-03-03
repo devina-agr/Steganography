@@ -47,4 +47,13 @@ public class JWTServices {
 
         return expiration.before(new Date());
     }
+
+    public String generateToken(String email) {
+        return Jwts.builder()
+                .subject(email)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis()+expiration_value))
+                .signWith(getSigningKey())
+                .compact();
+    }
 }

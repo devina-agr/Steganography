@@ -2,6 +2,7 @@ package org.spring.steganography.DTO.UserDTO;
 
 import org.spring.steganography.Model.Role;
 
+import java.util.List;
 import java.util.Set;
 
 public class AuthResponse {
@@ -9,6 +10,9 @@ public class AuthResponse {
     private String token;
     private String email;
     private Set<Role> role;
+
+    public AuthResponse(String token, String email, List<String> list) {
+    }
 
     public String getToken() {
         return token;
