@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotBlank;
 import org.spring.steganography.Model.User;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -25,6 +24,18 @@ public class UserService {
     public void deleteUser(String id) {
     }
 
-    public void changePassword(String id, String newPassword) {
+    public void changePassword(String id, String newPassword, String password) {
+    }
+
+    public void requestEmailChange(String userId, String newEmail, String password) {
+    }
+
+    public void confirmEmailChange(String token) {
+    }
+
+    public void forgotPassword(String email) {
+    }
+
+    public void resetPassword(String token, String newPassword) {
     }
 }

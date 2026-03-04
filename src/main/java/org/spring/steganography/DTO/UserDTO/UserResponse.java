@@ -11,7 +11,7 @@ public class UserResponse {
 
     private String id;
     private String email;
-    private Set<String> roles;
+    private Set<String> role;
     private LocalDateTime createdAt;
 
     public String getId() {
@@ -22,8 +22,8 @@ public class UserResponse {
         return email;
     }
 
-    public Set<String> getRoles() {
-        return roles;
+    public Set<String> getRole() {
+        return role;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -3,6 +3,7 @@ package org.spring.steganography.Controller;
 import jakarta.validation.Valid;
 import org.spring.steganography.DTO.UserDTO.AuthRequest;
 import org.spring.steganography.DTO.UserDTO.AuthResponse;
+import org.spring.steganography.DTO.UserDTO.TokenPayload;
 import org.spring.steganography.Model.User;
 import org.spring.steganography.Security.JWTServices;
 import org.spring.steganography.Service.UserService;
@@ -20,19 +21,20 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final UserService userService;
-    private final JWTServices jWTServices;
+    private final JWTServices jwtServices;
     private final AuthenticationManager authenticationManager;
 
     public AuthController(UserService userService, JWTServices jWTServices, AuthenticationManager authenticationManager) {
         this.userService = userService;
-        this.jWTServices = jWTServices;
+        this.jwtServices = jWTServices;
         this.authenticationManager = authenticationManager;
     }
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody AuthRequest authRequest){
         User user=userService.register(authRequest.getEmail(),authRequest.getPassword());
-        String token=jWTServices.generateToken(user.getEmail());
+        TokenPayload payload=new TokenPayload(user.getEmail(), user.getTokenVersion());
+        String token=jwtServices.generateToken(payload);
         AuthResponse response=new AuthResponse(
                 token,
                 user.getEmail(),
@@ -51,7 +53,8 @@ public class AuthController {
         );
 
         User user=userService.getByEmail(authRequest.getEmail());
-        String token=jWTServices.generateToken(user.getEmail());
+        TokenPayload payload=new TokenPayload(user.getEmail(), user.getTokenVersion());
+        String token=jwtServices.generateToken(payload);
         AuthResponse response=new AuthResponse(token,user.getEmail(),user.getRole().stream().map(Enum::name).toList());
         return ResponseEntity.ok(response);
     }

@@ -18,6 +18,7 @@ public class User {
     private Set<Role> role;
     private boolean enabled;
     private LocalDateTime createdAt;
+    private int tokenVersion;
 
     public String getId() {
         return id;
@@ -65,5 +66,13 @@ public class User {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public int getTokenVersion() {
+        return tokenVersion;
+    }
+
+    public void setTokenVersion(int tokenVersion) {
+        this.tokenVersion = tokenVersion;
     }
 }

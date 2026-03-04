@@ -1,6 +1,10 @@
 package org.spring.steganography.Controller;
 
+import org.apache.coyote.Response;
 import org.jspecify.annotations.Nullable;
+import org.spring.steganography.DTO.UserDTO.ChangePasswordDTO.ChangePasswordRequest;
+import org.spring.steganography.DTO.UserDTO.ChangePasswordDTO.ForgetPasswordRequest;
+import org.spring.steganography.DTO.UserDTO.ChangePasswordDTO.ResetPasswordRequest;
 import org.spring.steganography.DTO.UserDTO.UserResponse;
 import org.spring.steganography.Model.User;
 import org.spring.steganography.Security.UserPrincipal;
@@ -57,17 +61,44 @@ public class UserController {
 
     @PutMapping("/{id}/password")
     @PreAuthorize("#id==authentication.principal.userId")
-    public ResponseEntity<String> changePassword(@PathVariable String id, @RequestParam String newPassword){
-        userService.changePassword(id,newPassword);
-        return ResponseEntity.ok("Password updated successfully!");
+    public ResponseEntity<String> changePassword(@PathVariable String id, @RequestBody ChangePasswordRequest request){
+        userService.changePassword(id,request.getOldPassword(),request.getNewPassword());
+        return ResponseEntity.ok("Password updated successfully! Please login again.");
     }
+
+    @PostMapping("/forgot-passwprd")
+    public ResponseEntity<String> forgotPassword(@RequestBody ForgetPasswordRequest request){
+        userService.forgotPassword(request.getEmail());
+        return ResponseEntity.ok("Password resent link sent to your email.");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request){
+        userService.resetPassword(request.getToken(),request.getNewPassword());
+        return ResponseEntity.ok("Password reset successfully! Please login again.");
+    }
+
+
+
+    @PostMapping("/email/request")
+    public ResponseEntity<String> requestEmailChange(@AuthenticationPrincipal UserPrincipal userPrincipal, @RequestParam String newEmail, @RequestParam String password){
+            userService.requestEmailChange(userPrincipal.getUserId(),newEmail,password);
+            return ResponseEntity.ok("Verification link sent to your new email.");
+    }
+
+    @GetMapping("/email/confirm")
+    public ResponseEntity<String> confirmEmailChange(@RequestParam String token){
+        userService.confirmEmailChange(token);
+        return ResponseEntity.ok("Email updated successfully. Please login again!");
+    }
+
 
 
     private @Nullable UserResponse mapToResponse(User user) {
         return UserResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
-                .roles(user.getRole().stream().map(Enum::name).collect(Collectors.toSet()))
+                .role(user.getRole().stream().map(Enum::name).collect(Collectors.toSet()))
                 .createdAt(user.getCreatedAt())
                 .build();
     }

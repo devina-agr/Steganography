@@ -3,6 +3,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.spring.steganography.DTO.UserDTO.TokenPayload;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -30,11 +31,18 @@ public class JWTAuthenticationFilters extends OncePerRequestFilter {
             return;
         }
         String token=authHeader.substring(7);
-        String email=jwtServices.extractEmail(token);
+        String email;
+        try{
+            email=jwtServices.extractEmail(token);
+        } catch (Exception e) {
+            filterChain.doFilter(request,response);
+            return;
+        }
 
         if(email!=null && SecurityContextHolder.getContext().getAuthentication()==null){
             UserPrincipal userDetails=(UserPrincipal) userDetailService.loadUserByUsername(email);
-            if(jwtServices.validateToken(token,userDetails.getUsername())){
+            TokenPayload payload=new TokenPayload(userDetails.getUsername(),userDetails.getTokenVersion());
+            if(jwtServices.validateToken(token,payload)){
                 UsernamePasswordAuthenticationToken authToken=new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,
