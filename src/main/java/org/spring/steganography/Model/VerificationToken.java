@@ -1,11 +1,13 @@
 package org.spring.steganography.Model;
 
+import lombok.Builder;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 
 @Document(collection = "verification_tokens")
+@Builder
 public class VerificationToken {
 
     @Id
@@ -13,6 +15,7 @@ public class VerificationToken {
     private String userId;
     private LocalDateTime expiry;
     private String token;
+    private TokenType type;
     private String newValue;
 
     public String getId() {
@@ -53,5 +56,13 @@ public class VerificationToken {
 
     public void setNewValue(String newValue) {
         this.newValue = newValue;
+    }
+
+    public TokenType getType() {
+        return type;
+    }
+
+    public void setType(TokenType type) {
+        this.type = type;
     }
 }

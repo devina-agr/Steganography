@@ -1,6 +1,5 @@
 package org.spring.steganography.Controller;
 
-import org.apache.coyote.Response;
 import org.jspecify.annotations.Nullable;
 import org.spring.steganography.DTO.UserDTO.ChangePasswordDTO.ChangePasswordRequest;
 import org.spring.steganography.DTO.UserDTO.ChangePasswordDTO.ForgetPasswordRequest;
@@ -11,8 +10,8 @@ import org.spring.steganography.Security.UserPrincipal;
 import org.spring.steganography.Service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -62,11 +61,12 @@ public class UserController {
     @PutMapping("/{id}/password")
     @PreAuthorize("#id==authentication.principal.userId")
     public ResponseEntity<String> changePassword(@PathVariable String id, @RequestBody ChangePasswordRequest request){
-        userService.changePassword(id,request.getOldPassword(),request.getNewPassword());
+        userService.changePassword(id,request.getNewPassword(),request.getOldPassword());
+        SecurityContextHolder.clearContext();
         return ResponseEntity.ok("Password updated successfully! Please login again.");
     }
 
-    @PostMapping("/forgot-passwprd")
+    @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestBody ForgetPasswordRequest request){
         userService.forgotPassword(request.getEmail());
         return ResponseEntity.ok("Password resent link sent to your email.");
@@ -102,7 +102,4 @@ public class UserController {
                 .createdAt(user.getCreatedAt())
                 .build();
     }
-
-
-
 }
