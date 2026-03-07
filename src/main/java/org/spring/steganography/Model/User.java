@@ -1,5 +1,6 @@
 package org.spring.steganography.Model;
 
+import lombok.Builder;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.stereotype.Component;
@@ -9,6 +10,7 @@ import java.util.Set;
 
 @Component
 @Document(collection = "User")
+@Builder
 public class User {
 
     @Id

@@ -7,6 +7,7 @@ import org.spring.steganography.DTO.UserDTO.ChangePasswordDTO.ResetPasswordReque
 import org.spring.steganography.DTO.UserDTO.UserResponse;
 import org.spring.steganography.Model.User;
 import org.spring.steganography.Security.UserPrincipal;
+import org.spring.steganography.Service.AdminService;
 import org.spring.steganography.Service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,49 +20,27 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/users")
+@PreAuthorize("hasRole('USER')")
 public class UserController {
 
+    private final AdminService adminService;
     private UserService userService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, AdminService adminService) {
         this.userService = userService;
+        this.adminService = adminService;
     }
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getCurrentUser(@AuthenticationPrincipal UserPrincipal principal){
-        User user=userService.getById(principal.getUserId());
+        User user=adminService.getById(principal.getUserId());
         return ResponseEntity.ok(mapToResponse(user));
-    }
-
-    @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable String id){
-        User user=userService.getById(id);
-        return ResponseEntity.ok(mapToResponse(user));
-    }
-
-    @GetMapping("/all-users")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<UserResponse>> getAllUsers(){
-        List<UserResponse> usersList=userService
-                .getAllUsers()
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
-        return ResponseEntity.ok(usersList);
-    }
-
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> deleteUser(@PathVariable String id){
-        userService.deleteUser(id);
-        return ResponseEntity.ok("User deleted successfully!");
     }
 
     @PutMapping("/{id}/password")
     @PreAuthorize("#id==authentication.principal.userId")
     public ResponseEntity<String> changePassword(@PathVariable String id, @RequestBody ChangePasswordRequest request){
-        userService.changePassword(id,request.getNewPassword(),request.getOldPassword());
+        userService.changePassword(id,request.getOldPassword(),request.getNewPassword());
         SecurityContextHolder.clearContext();
         return ResponseEntity.ok("Password updated successfully! Please login again.");
     }
@@ -75,10 +54,9 @@ public class UserController {
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request){
         userService.resetPassword(request.getToken(),request.getNewPassword());
+        SecurityContextHolder.clearContext();
         return ResponseEntity.ok("Password reset successfully! Please login again.");
     }
-
-
 
     @PostMapping("/email/request")
     public ResponseEntity<String> requestEmailChange(@AuthenticationPrincipal UserPrincipal userPrincipal, @RequestParam String newEmail, @RequestParam String password){
@@ -89,6 +67,7 @@ public class UserController {
     @GetMapping("/email/confirm")
     public ResponseEntity<String> confirmEmailChange(@RequestParam String token){
         userService.confirmEmailChange(token);
+        SecurityContextHolder.clearContext();
         return ResponseEntity.ok("Email updated successfully. Please login again!");
     }
 
