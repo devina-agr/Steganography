@@ -1,6 +1,7 @@
 package org.spring.steganography.Model;
 
 import lombok.Builder;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.stereotype.Component;
@@ -8,7 +9,6 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.Set;
 
-@Component
 @Document(collection = "User")
 @Builder
 public class User {
@@ -21,6 +21,7 @@ public class User {
     private boolean enabled;
     private LocalDateTime createdAt;
     private int tokenVersion;
+    private boolean banned;
 
     public String getId() {
         return id;
@@ -76,5 +77,13 @@ public class User {
 
     public void setTokenVersion(int tokenVersion) {
         this.tokenVersion = tokenVersion;
+    }
+
+    public boolean isBanned() {
+        return banned;
+    }
+
+    public void setBanned(boolean banned) {
+        this.banned = banned;
     }
 }

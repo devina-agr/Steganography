@@ -11,6 +11,7 @@ import org.spring.steganography.Model.User;
 import org.spring.steganography.Model.VerificationToken;
 import org.spring.steganography.Repository.UserRepo;
 import org.spring.steganography.Repository.VerificationTokenRepository;
+import org.spring.steganography.Util.SecurityUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -81,7 +82,7 @@ public class UserService {
             throw new UnAuthorizedActionException("Email already exists");
         }
         String rawToken=UUID.randomUUID().toString();
-        String token=hashToken(rawToken);
+        String token= SecurityUtils.hashToken(rawToken);
         VerificationToken verificationToken=VerificationToken.builder()
                 .userId(user.getId())
                 .token(token)
@@ -104,7 +105,7 @@ public class UserService {
     }
 
     public void confirmEmailChange(String token) {
-        String hashToken=hashToken(token);
+        String hashToken=SecurityUtils.hashToken(token);
         VerificationToken verificationToken=verificationTokenRepository.findByToken(hashToken).orElseThrow(()->new InvalidInviteException("Invalid token"));
         if(verificationToken.getType()!=TokenType.EMAIL_CHANGE){
             throw new UnAuthorizedActionException("Invalid token type");
@@ -131,7 +132,7 @@ public class UserService {
     public void forgotPassword(String email) {
         userRepo.findByEmail(email).ifPresent(user -> {
             String rawToken= UUID.randomUUID().toString();
-            String token=hashToken(rawToken);
+            String token=SecurityUtils.hashToken(rawToken);
             VerificationToken verificationToken=VerificationToken.builder()
                     .userId(user.getId())
                     .token(token)
@@ -153,7 +154,7 @@ public class UserService {
     }
 
     public void resetPassword(String token, String newPassword) {
-        String hashToken=hashToken(token);
+        String hashToken=SecurityUtils.hashToken(token);
         VerificationToken verificationToken=verificationTokenRepository.findByToken(hashToken).orElseThrow(()->new InvalidInviteException("Invalid token"));
         if(verificationToken.getType()!=TokenType.PASSWORD_RESET){
             throw new UnAuthorizedActionException("Invalid token type");
@@ -176,17 +177,6 @@ public class UserService {
                         please contact support immediately.
                       """
         );
-    }
-
-    private String hashToken(String token){
-        try{
-            MessageDigest digest=MessageDigest.getInstance("SHA-256");
-            byte[] encodedHash=digest.digest(token.getBytes(StandardCharsets.UTF_8));
-            return Base64.getEncoder().encodeToString(encodedHash);
-        }
-        catch(Exception e){
-            throw new IllegalStateException("Error hashing token", e);
-        }
     }
 
     @Scheduled(cron = "0 0 0 * * *")
