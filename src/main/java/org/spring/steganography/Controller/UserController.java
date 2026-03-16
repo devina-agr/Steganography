@@ -4,6 +4,7 @@ import org.jspecify.annotations.Nullable;
 import org.spring.steganography.DTO.UserDTO.ChangePasswordDTO.ChangePasswordRequest;
 import org.spring.steganography.DTO.UserDTO.ChangePasswordDTO.ForgetPasswordRequest;
 import org.spring.steganography.DTO.UserDTO.ChangePasswordDTO.ResetPasswordRequest;
+import org.spring.steganography.DTO.UserDTO.EmailChangeRequest;
 import org.spring.steganography.DTO.UserDTO.UserResponse;
 import org.spring.steganography.Model.User;
 import org.spring.steganography.Security.UserPrincipal;
@@ -59,8 +60,8 @@ public class UserController {
     }
 
     @PostMapping("/email/request")
-    public ResponseEntity<String> requestEmailChange(@AuthenticationPrincipal UserPrincipal userPrincipal, @RequestParam String newEmail, @RequestParam String password){
-            userService.requestEmailChange(userPrincipal.getUserId(),newEmail,password);
+    public ResponseEntity<String> requestEmailChange(@AuthenticationPrincipal UserPrincipal userPrincipal, @RequestBody EmailChangeRequest emailChangeRequest){
+            userService.requestEmailChange(userPrincipal.getUserId(),emailChangeRequest.getNewEmail(),emailChangeRequest.getPassword());
             return ResponseEntity.ok("Verification link sent to your new email.");
     }
 

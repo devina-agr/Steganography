@@ -16,17 +16,21 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
-import java.util.Objects;
-
-import static java.util.Objects.hash;
-
+import java.util.UUID;
 
 @Service
 public class StegoService {
+
+    private static final String STORAGE_DIR="uploads/";
     private final StegoRecordsRepo stegoRecordsRepo;
 
     public StegoService(StegoRecordsRepo stegoRecordsRepo) {
@@ -52,19 +56,131 @@ public class StegoService {
     }
 
     private String saveImage(byte[] encodedImage) {
+        try{
+            File dir=new File(STORAGE_DIR);
+            if(!dir.exists()){
+                dir.mkdirs();
+            }
+            String fileName= UUID.randomUUID()+".png";
+            File file=new File(dir,fileName);
+            Files.write(file.toPath(),encodedImage);
+            return file.getAbsolutePath();
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to save encoded image ",e);
+        }
     }
 
     private byte[] hideMessage(MultipartFile image, String encryptedMessage) {
+        try{
+            BufferedImage img= ImageIO.read(image.getInputStream());
+            byte[] msgBytes=encryptedMessage.getBytes(StandardCharsets.UTF_8);
+            int msgLength=msgBytes.length;
+            int totalBits=32+(msgLength*8);
+            int width=img.getWidth();
+            int height=img.getHeight();
+            int capacity=width*height*3;
+            if(totalBits>capacity){
+                throw new RuntimeException("Message too large for this image!");
+            }
+            int bitIndex=0;
+            for(int y=0;y<height;y++){
+                for(int x=0;x<width;x++){
+                    int pixel=img.getRGB(x,y);
+                    int r=(pixel>>16) & 0xff;
+                    int g=(pixel>>8) & 0xff;
+                    int b=pixel & 0xff;
+                    int[] channels={r,g,b};
+                    for(int i=0;i<channels.length && bitIndex<totalBits;i++){
+                        channels[i]=setLSB(channels[i], getBit(msgLength,msgBytes,bitIndex++));
+                    }
+                    r=channels[0];
+                    g=channels[1];
+                    b=channels[2];
 
+                    int newPixel=(r<<16) | (g<<8) | b;
+                    img.setRGB(x,y,newPixel);
+                    if(bitIndex>=totalBits){
+                        break;
+                    }
+                }
+                if(bitIndex>=totalBits){
+                    break;
+                }
+            }
+            File temp=File.createTempFile("stego",".png");
+            ImageIO.write(img,"png",temp);
+            return Files.readAllBytes(temp.toPath());
+        } catch (IOException e) {
+             throw new RuntimeException("Steganography encoding failed! ",e);
+        }
     }
 
-    public String decodeMessage(String userId, MultipartFile image, DecodeRequest request) {
+    private int setLSB(int value, int bit) {
+        return (value & 0xFE) | bit;
+    }
+
+    private int getBit(int msgLength, byte[] msgBytes, int index) {
+            if(index<32){
+                return (msgLength>>(31-index)) & 1;
+            }
+            int byteIndex=(index-32)/8;
+            int bitIndex=(index-32)%8;
+            return (msgBytes[byteIndex]>>(7-bitIndex))&1;
+    }
+
+    public String decodeMessage(String userId,String recordId, MultipartFile image, DecodeRequest request) {
+        StegoRecords records=stegoRecordsRepo.findById(recordId).orElseThrow(()->new UserNotFoundException("Records not found!"));
+        if(!records.getUserId().equals(userId)){
+            throw new UnAuthorizedActionException("Access Denied!");
+        }
         validateImage(image);
         String hiddenMessage=extractMessage(image);
         return decrypt(hiddenMessage,request.getSecretKey());
     }
 
     private String extractMessage(MultipartFile image) {
+        try{
+            BufferedImage img=ImageIO.read(image.getInputStream());
+            int width= img.getWidth();
+            int height= img.getHeight();
+            int bitIndex=0;
+            int msgLength=0;
+            byte[] messageBytes=null;
+            for(int y=0;y<height;y++){
+                for(int x=0;x<width;x++){
+                    int pixel=img.getRGB(x,y);
+                    int r=(pixel>>16)&1;
+                    int g=(pixel>>8)&1;
+                    int b=pixel&1;
+                    int[] bits={r,g,b};
+                    for(int bit:bits){
+                        if(bitIndex<32){
+                            msgLength=(msgLength<<1)|bit;
+                        }
+                        if(bitIndex==31){
+                            messageBytes=new byte[msgLength];
+                        }
+                        else if(messageBytes!=null){
+                            int byteIndex=(bitIndex-32)/8;
+                            int bitPos=7-((bitIndex-32)%8);
+                            if(byteIndex<messageBytes.length){
+                                messageBytes[byteIndex]|=bit<<bitPos;
+                            }
+                        }
+                        bitIndex++;
+                        if(messageBytes!=null && bitIndex>=32 + messageBytes.length*8){
+                            return new String(messageBytes,StandardCharsets.UTF_8);
+                        }
+                    }
+                }
+            }
+            throw new RuntimeException("No hidden message found!");
+
+        }
+        catch (IOException e){
+            throw new RuntimeException("Failed to decode message ",e);
+        }
     }
 
     public Page<StegoResponse> getUserRecords(String userId, int page, int size) {
@@ -81,7 +197,13 @@ public class StegoService {
         return loadImage(records.getEncodedImgUrl());
     }
 
-    private byte[] loadImage(String encodedImgUrl) {
+    private byte[] loadImage(String path) {
+        try{
+            return Files.readAllBytes(new File(path).toPath());
+        }
+        catch (IOException e){
+            throw new RuntimeException("Failed to load image!",e);
+        }
     }
 
     public void deleteRecord(String userId, String recordId) {
@@ -110,26 +232,26 @@ public class StegoService {
     private String encrypt(String message, String key){
         try{
             SecretKey secretKey=new SecretKeySpec(Base64.getDecoder().decode(key),"AES");
-            Cipher cipher=Cipher.getInstance("AES");
+            Cipher cipher=Cipher.getInstance("AES/ECB/PKCS5Padding");
             cipher.init(Cipher.ENCRYPT_MODE,secretKey);
             byte[] encrypted=cipher.doFinal(message.getBytes(StandardCharsets.UTF_8));
             return Base64.getEncoder().encodeToString(encrypted);
         }
         catch(Exception e){
-            throw new RuntimeException("Encryption failed!");
+            throw new RuntimeException("Encryption failed!",e);
         }
     }
 
     private String decrypt(String encrypted, String key){
         try{
             SecretKey secretKey=new SecretKeySpec(Base64.getDecoder().decode(key),"AES");
-            Cipher cipher=Cipher.getInstance("AES");
+            Cipher cipher=Cipher.getInstance("AES/ECB/PKCS5Padding");
             cipher.init(Cipher.DECRYPT_MODE,secretKey);
             byte[] decrypted=cipher.doFinal(Base64.getDecoder().decode(encrypted));
             return new String(decrypted);
         }
         catch(Exception e){
-            throw new RuntimeException("Decryption failed!");
+            throw new RuntimeException("Decryption failed!",e);
         }
     }
 

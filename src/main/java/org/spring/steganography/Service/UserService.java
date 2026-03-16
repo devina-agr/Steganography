@@ -6,6 +6,7 @@ import org.spring.steganography.Exception.InvalidInviteException;
 import org.spring.steganography.Exception.TokenExpiredException;
 import org.spring.steganography.Exception.UnAuthorizedActionException;
 import org.spring.steganography.Exception.UserNotFoundException;
+import org.spring.steganography.Model.Role;
 import org.spring.steganography.Model.TokenType;
 import org.spring.steganography.Model.User;
 import org.spring.steganography.Model.VerificationToken;
@@ -21,6 +22,7 @@ import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -46,6 +48,8 @@ public class UserService {
         User user=User.builder()
                 .email(email)
                 .password(passwordEncoder.encode(password))
+                .role(Set.of(Role.USER))
+                .createdAt(LocalDateTime.now())
                 .tokenVersion(0)
                 .build();
         return userRepo.save(user);
@@ -106,21 +110,24 @@ public class UserService {
 
     public void confirmEmailChange(String token) {
         String hashToken=SecurityUtils.hashToken(token);
+
         VerificationToken verificationToken=verificationTokenRepository.findByToken(hashToken).orElseThrow(()->new InvalidInviteException("Invalid token"));
         if(verificationToken.getType()!=TokenType.EMAIL_CHANGE){
             throw new UnAuthorizedActionException("Invalid token type");
         }
         if(verificationToken.getExpiry().isBefore(LocalDateTime.now())){
+            verificationTokenRepository.delete(verificationToken);
             throw new TokenExpiredException("Token expired!");
         }
         User user=adminService.getById(verificationToken.getUserId());
+        String oldEmail= user.getEmail();
         user.setEmail(verificationToken.getNewValue());
         user.setTokenVersion(user.getTokenVersion()+1);
         userRepo.save(user);
         verificationTokenRepository.delete(verificationToken);
 
         emailService.sendEmail(
-                user.getEmail(),
+                oldEmail,
                 "Email Changed Successfully",
                 """
                         Your email address has been changed successfully.

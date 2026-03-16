@@ -1,10 +1,8 @@
 package org.spring.steganography.Repository;
 
-import org.spring.steganography.Model.TokenType;
 import org.spring.steganography.Model.VerificationToken;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-import java.lang.ScopedValue;
 import java.time.LocalDateTime;
 import java.util.Optional;
 

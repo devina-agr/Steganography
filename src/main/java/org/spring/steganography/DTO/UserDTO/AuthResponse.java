@@ -9,9 +9,12 @@ public class AuthResponse {
 
     private String token;
     private String email;
-    private Set<Role> role;
+    private List<String> role;
 
-    public AuthResponse(String token, String email, List<String> list) {
+    public AuthResponse(String token, String email, List<String> role) {
+        this.token=token;
+        this.email=email;
+        this.role=role;
     }
 
     public String getToken() {
@@ -30,11 +33,11 @@ public class AuthResponse {
         this.email = email;
     }
 
-    public Set<Role> getRole() {
+    public List<String> getRole() {
         return role;
     }
 
-    public void setRole(Set<Role> role) {
+    public void setRole(List<String> role) {
         this.role = role;
     }
 }

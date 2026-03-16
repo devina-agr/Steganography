@@ -15,6 +15,7 @@ public class StegoRecords {
     @Id
     private String id;
     private String userId;
+    private String userEmail;
     private String imgName;
     private String encodedImgUrl;
     private LocalDateTime createdAt;
@@ -78,5 +79,11 @@ public class StegoRecords {
         this.secretKeyHash = secretKeyHash;
     }
 
+    public String getUserEmail() {
+        return userEmail;
+    }
 
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
+    }
 }

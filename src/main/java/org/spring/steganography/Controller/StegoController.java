@@ -29,8 +29,8 @@ public class StegoController {
     }
 
     @PostMapping("/decode")
-    public ResponseEntity<String> decode(@AuthenticationPrincipal UserPrincipal userPrincipal, @RequestParam MultipartFile image, @RequestBody DecodeRequest request, Principal principal){
-        return ResponseEntity.ok(stegoService.decodeMessage(userPrincipal.getUserId(),image,request));
+    public ResponseEntity<String> decode(@AuthenticationPrincipal UserPrincipal userPrincipal,@RequestParam String recordId, @RequestParam MultipartFile image, @RequestBody DecodeRequest request){
+        return ResponseEntity.ok(stegoService.decodeMessage(userPrincipal.getUserId(),recordId,image,request));
     }
 
     @GetMapping("/records")
