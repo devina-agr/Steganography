@@ -5,18 +5,18 @@ import lombok.Builder;
 @Builder
 public class StegoResponse {
 
-    private String recordId;
+    private String id;
     private String encodedImageUrl;
     private String secretKey;
 
-    public StegoResponse(String recordId, String encodedImageUrl, String secretKey) {
-        this.recordId = recordId;
+    public StegoResponse(String id, String encodedImageUrl, String secretKey) {
+        this.id = id;
         this.encodedImageUrl = encodedImageUrl;
         this.secretKey = secretKey;
     }
 
-    public String getRecordId() {
-        return recordId;
+    public String getId() {
+        return id;
     }
 
     public String getEncodedImageUrl() {

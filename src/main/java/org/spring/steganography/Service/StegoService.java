@@ -1,7 +1,8 @@
 package org.spring.steganography.Service;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import jakarta.validation.constraints.NotBlank;
-import org.spring.steganography.DTO.StegoDTO.DecodeRequest;
 import org.spring.steganography.DTO.StegoDTO.StegoResponse;
 import org.spring.steganography.Exception.UnAuthorizedActionException;
 import org.spring.steganography.Exception.UserNotFoundException;
@@ -20,21 +21,27 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
-import java.util.UUID;
+import java.util.Map;
 
 @Service
 public class StegoService {
 
-    private static final String STORAGE_DIR="uploads/";
     private final StegoRecordsRepo stegoRecordsRepo;
+    private final Cloudinary cloudinary;
 
-    public StegoService(StegoRecordsRepo stegoRecordsRepo) {
+    public StegoService(StegoRecordsRepo stegoRecordsRepo, Cloudinary cloudinary) {
         this.stegoRecordsRepo = stegoRecordsRepo;
+        this.cloudinary = cloudinary;
     }
 
     public StegoResponse encodeMessage(String userId, MultipartFile image, @NotBlank String secretText) {
@@ -57,23 +64,23 @@ public class StegoService {
 
     private String saveImage(byte[] encodedImage) {
         try{
-            File dir=new File(STORAGE_DIR);
-            if(!dir.exists()){
-                dir.mkdirs();
-            }
-            String fileName= UUID.randomUUID()+".png";
-            File file=new File(dir,fileName);
-            Files.write(file.toPath(),encodedImage);
-            return file.getAbsolutePath();
+            Map uploadResult=cloudinary.uploader().upload(encodedImage, ObjectUtils.asMap(
+                    "folder","stego",
+                    "resource_type","image"
+            ));
+            return uploadResult.get("secure_url").toString();
 
         } catch (IOException e) {
-            throw new RuntimeException("Failed to save encoded image ",e);
+            throw new RuntimeException("Cloudinary upload failed",e);
         }
     }
 
     private byte[] hideMessage(MultipartFile image, String encryptedMessage) {
         try{
             BufferedImage img= ImageIO.read(image.getInputStream());
+            if(img==null){
+                throw new RuntimeException("Unsupported image format. Please upload PNG or JPG");
+            }
             byte[] msgBytes=encryptedMessage.getBytes(StandardCharsets.UTF_8);
             int msgLength=msgBytes.length;
             int totalBits=32+(msgLength*8);
@@ -98,7 +105,8 @@ public class StegoService {
                     g=channels[1];
                     b=channels[2];
 
-                    int newPixel=(r<<16) | (g<<8) | b;
+                    int alpha=(pixel>>24) & 0xff;
+                    int newPixel=(alpha<<24) | (r<<16) | (g<<8) | b;
                     img.setRGB(x,y,newPixel);
                     if(bitIndex>=totalBits){
                         break;
@@ -129,19 +137,25 @@ public class StegoService {
             return (msgBytes[byteIndex]>>(7-bitIndex))&1;
     }
 
-    public String decodeMessage(String userId,String recordId, MultipartFile image, DecodeRequest request) {
+    public String decodeMessage(String userId, String recordId, MultipartFile image, String secretKey) {
         StegoRecords records=stegoRecordsRepo.findById(recordId).orElseThrow(()->new UserNotFoundException("Records not found!"));
         if(!records.getUserId().equals(userId)){
             throw new UnAuthorizedActionException("Access Denied!");
         }
         validateImage(image);
+        if(!SecurityUtils.hashToken(secretKey).equals(records.getSecretKeyHash())){
+            throw new UnAuthorizedActionException("Invalid secret key!");
+        }
         String hiddenMessage=extractMessage(image);
-        return decrypt(hiddenMessage,request.getSecretKey());
+        return decrypt(hiddenMessage,secretKey);
     }
 
     private String extractMessage(MultipartFile image) {
         try{
             BufferedImage img=ImageIO.read(image.getInputStream());
+            if(img==null){
+                throw new RuntimeException("Invalid image!");
+            }
             int width= img.getWidth();
             int height= img.getHeight();
             int bitIndex=0;
@@ -185,25 +199,7 @@ public class StegoService {
 
     public Page<StegoResponse> getUserRecords(String userId, int page, int size) {
         return stegoRecordsRepo.findByUserId(userId, PageRequest.of(page,size))
-                               .map(record->new StegoResponse(record.getRecordId(),record.getEncodedImageUrl(),null));
-    }
-
-    public byte [] downloadImage(String userId, String recordId) {
-        StegoRecords records=stegoRecordsRepo.findById(recordId).orElseThrow(()->new UserNotFoundException("Records not found!"));
-
-        if(!records.getUserId().equals(userId)){
-            throw new UnAuthorizedActionException("Access denied!");
-        }
-        return loadImage(records.getEncodedImgUrl());
-    }
-
-    private byte[] loadImage(String path) {
-        try{
-            return Files.readAllBytes(new File(path).toPath());
-        }
-        catch (IOException e){
-            throw new RuntimeException("Failed to load image!",e);
-        }
+                               .map(record->new StegoResponse(record.getId(),record.getEncodedImageUrl(),null));
     }
 
     public void deleteRecord(String userId, String recordId) {
@@ -256,4 +252,11 @@ public class StegoService {
     }
 
 
+    public String getImageUrl(String userId, String recordId) {
+        StegoRecords records=stegoRecordsRepo.findById(recordId).orElseThrow(()->new UserNotFoundException("Records not found!"));
+        if(!records.getUserId().equals(userId)){
+            throw new UnAuthorizedActionException("Access denied!");
+        }
+        return records.getEncodedImgUrl();
+    }
 }
