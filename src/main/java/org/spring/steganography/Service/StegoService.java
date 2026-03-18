@@ -21,11 +21,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URL;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.SecureRandom;
@@ -45,7 +41,6 @@ public class StegoService {
     }
 
     public StegoResponse encodeMessage(String userId, MultipartFile image, @NotBlank String secretText) {
-        validateImage(image);
         String secretKey=generateSecretKey();
         String encryptedMessage=encrypt(secretText,secretKey);
         byte[] encodedImage=hideMessage(image,encryptedMessage);
@@ -66,7 +61,8 @@ public class StegoService {
         try{
             Map uploadResult=cloudinary.uploader().upload(encodedImage, ObjectUtils.asMap(
                     "folder","stego",
-                    "resource_type","image"
+                    "resource_type","image",
+                    "format","png"
             ));
             return uploadResult.get("secure_url").toString();
 
@@ -118,6 +114,7 @@ public class StegoService {
             }
             File temp=File.createTempFile("stego",".png");
             ImageIO.write(img,"png",temp);
+            temp.deleteOnExit();
             return Files.readAllBytes(temp.toPath());
         } catch (IOException e) {
              throw new RuntimeException("Steganography encoding failed! ",e);
@@ -137,22 +134,22 @@ public class StegoService {
             return (msgBytes[byteIndex]>>(7-bitIndex))&1;
     }
 
-    public String decodeMessage(String userId, String recordId, MultipartFile image, String secretKey) {
+    public String decodeMessage(String userId, String recordId, String secretKey) {
         StegoRecords records=stegoRecordsRepo.findById(recordId).orElseThrow(()->new UserNotFoundException("Records not found!"));
         if(!records.getUserId().equals(userId)){
             throw new UnAuthorizedActionException("Access Denied!");
         }
-        validateImage(image);
+        String imageUrl=records.getEncodedImgUrl();
         if(!SecurityUtils.hashToken(secretKey).equals(records.getSecretKeyHash())){
             throw new UnAuthorizedActionException("Invalid secret key!");
         }
-        String hiddenMessage=extractMessage(image);
+        String hiddenMessage=extractMessage(imageUrl);
         return decrypt(hiddenMessage,secretKey);
     }
 
-    private String extractMessage(MultipartFile image) {
+    private String extractMessage(String imageUrl) {
         try{
-            BufferedImage img=ImageIO.read(image.getInputStream());
+            BufferedImage img=ImageIO.read(new URL(imageUrl).openStream());
             if(img==null){
                 throw new RuntimeException("Invalid image!");
             }
@@ -164,16 +161,19 @@ public class StegoService {
             for(int y=0;y<height;y++){
                 for(int x=0;x<width;x++){
                     int pixel=img.getRGB(x,y);
-                    int r=(pixel>>16)&1;
-                    int g=(pixel>>8)&1;
-                    int b=pixel&1;
-                    int[] bits={r,g,b};
+                    int r=(pixel>>16)&0xff;
+                    int g=(pixel>>8)&0xff;
+                    int b=pixel&0xff;
+                    int[] bits={r&1,g&1,b&1};
                     for(int bit:bits){
-                        if(bitIndex<32){
-                            msgLength=(msgLength<<1)|bit;
-                        }
-                        if(bitIndex==31){
-                            messageBytes=new byte[msgLength];
+                        if(bitIndex<32) {
+                            msgLength = (msgLength << 1) | bit;
+                            if (bitIndex == 31) {
+                                if(msgLength == 0 || msgLength>(width*height*3)/8){
+                                    throw new RuntimeException("Corrupted or invalid message length");
+                                }
+                                messageBytes = new byte[msgLength];
+                            }
                         }
                         else if(messageBytes!=null){
                             int byteIndex=(bitIndex-32)/8;
@@ -208,15 +208,6 @@ public class StegoService {
             throw new UnAuthorizedActionException("Access denied!");
         }
         stegoRecordsRepo.delete(records);
-    }
-
-    private void validateImage(MultipartFile image){
-        if(image.isEmpty()){
-            throw new IllegalArgumentException("Image cannot be empty.");
-        }
-        if(!image.getContentType().startsWith("image")){
-            throw new IllegalArgumentException("Invalid file type");
-        }
     }
 
     private String generateSecretKey(){
