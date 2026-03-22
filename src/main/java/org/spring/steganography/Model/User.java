@@ -11,6 +11,7 @@ import java.util.Set;
 
 @Document(collection = "User")
 @Builder
+@NoArgsConstructor
 public class User {
 
     @Id
