@@ -1,5 +1,6 @@
 package org.spring.steganography.Model;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
@@ -12,6 +13,7 @@ import java.util.Set;
 @Document(collection = "User")
 @Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class User {
 
     @Id

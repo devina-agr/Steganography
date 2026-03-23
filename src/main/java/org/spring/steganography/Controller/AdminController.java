@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAuthority('ADMIN')")
 public class AdminController {
 
 
@@ -59,7 +59,7 @@ public class AdminController {
         return ResponseEntity.ok(mapToResponse(user));
     }
 
-    @PatchMapping("/users/(id)/ban")
+    @PatchMapping("/users/{id}/ban")
     public ResponseEntity<String> toggleUserBan(@PathVariable String id){
         adminService.toggleUserBan(id);
         return ResponseEntity.ok("User ban status updated!");
