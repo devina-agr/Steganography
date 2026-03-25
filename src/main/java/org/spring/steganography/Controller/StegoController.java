@@ -1,7 +1,6 @@
 package org.spring.steganography.Controller;
 
 import org.spring.steganography.DTO.StegoDTO.StegoResponse;
-import org.spring.steganography.Model.StegoRecords;
 import org.spring.steganography.Repository.StegoRecordsRepo;
 import org.spring.steganography.Security.UserPrincipal;
 import org.spring.steganography.Service.StegoService;

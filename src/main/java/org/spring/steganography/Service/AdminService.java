@@ -4,6 +4,7 @@ import org.jspecify.annotations.Nullable;
 import org.spring.steganography.DTO.UserDTO.UserResponse;
 import org.spring.steganography.Exception.UserNotFoundException;
 import org.spring.steganography.Model.AdminInvite;
+import org.spring.steganography.Model.Role;
 import org.spring.steganography.Model.StegoRecords;
 import org.spring.steganography.Model.User;
 import org.spring.steganography.Repository.StegoRecordsRepo;
@@ -31,7 +32,7 @@ public class AdminService {
     }
 
     public List<User> getAllUsers() {
-        return userRepo.findAll();
+        return userRepo.findByRoleContaining(Role.USER);
     }
 
     public void deleteUser(String id) {
@@ -40,11 +41,11 @@ public class AdminService {
     }
 
     public User getById(String id) {
-        return userRepo.findById(id).orElseThrow(()->new UserNotFoundException("User not found!"));
+        return userRepo.findByIdAndRole(id,Role.USER).orElseThrow(()->new UserNotFoundException("User not found!"));
     }
 
     public @Nullable Long getUserCount() {
-        return userRepo.count();
+        return userRepo.countByRoleContaining(Role.USER);
     }
 
     public User getUserByEmail(String email) {
@@ -58,7 +59,7 @@ public class AdminService {
     }
 
     public Page<UserResponse> getUsersPaginated(int page, int size) {
-        Page<User> users=userRepo.findAll(PageRequest.of(page,size, Sort.by("createdAt").descending()));
+        Page<User> users=userRepo.findByRoleContaining(Role.USER,PageRequest.of(page,size, Sort.by("createdAt").descending()));
         return users.map(user -> UserResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
@@ -68,7 +69,7 @@ public class AdminService {
     }
 
     public Map<String, Object> getSystemStats() {
-        long userCount=userRepo.count();
+        long userCount=userRepo.countByRoleContaining(Role.USER);
         long stegoRecords=stegoRecordsRepo.count();
         Map<String,Object> stats=new HashMap<>();
         stats.put("totalUsers",userCount);

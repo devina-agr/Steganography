@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/users")
-@PreAuthorize("hasAuthority('USER')")
+@PreAuthorize("hasRole('USER')")
 public class UserController {
 
     private final AdminService adminService;
