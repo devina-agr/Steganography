@@ -3,10 +3,8 @@ package org.spring.steganography.Service;
 import org.jspecify.annotations.Nullable;
 import org.spring.steganography.DTO.UserDTO.UserResponse;
 import org.spring.steganography.Exception.UserNotFoundException;
-import org.spring.steganography.Model.AdminInvite;
-import org.spring.steganography.Model.Role;
-import org.spring.steganography.Model.StegoRecords;
-import org.spring.steganography.Model.User;
+import org.spring.steganography.Model.*;
+import org.spring.steganography.Repository.AuditLogRepo;
 import org.spring.steganography.Repository.StegoRecordsRepo;
 import org.spring.steganography.Repository.UserRepo;
 import org.springframework.data.domain.Page;
@@ -24,11 +22,13 @@ public class AdminService {
     private final UserRepo userRepo;
     private final StegoRecordsRepo stegoRecordsRepo;
     private final AdminInvite adminInvite;
+    private final AuditLogRepo auditLogRepo;
 
-    public AdminService(UserRepo userRepo, StegoRecordsRepo stegoRecordsRepo, AdminInvite adminInvite) {
+    public AdminService(UserRepo userRepo, StegoRecordsRepo stegoRecordsRepo, AdminInvite adminInvite, AuditLogRepo auditLogRepo) {
         this.userRepo = userRepo;
         this.stegoRecordsRepo = stegoRecordsRepo;
         this.adminInvite = adminInvite;
+        this.auditLogRepo = auditLogRepo;
     }
 
     public List<User> getAllUsers() {
@@ -79,5 +79,9 @@ public class AdminService {
 
     public List<StegoRecords> getAllStegoRecords() {
         return stegoRecordsRepo.findAll();
+    }
+
+    public List<AuditLog> getLogs() {
+        return auditLogRepo.findAll();
     }
 }

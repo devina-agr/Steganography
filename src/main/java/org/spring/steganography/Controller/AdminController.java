@@ -1,6 +1,7 @@
 package org.spring.steganography.Controller;
 
 import org.spring.steganography.DTO.UserDTO.UserResponse;
+import org.spring.steganography.Model.AuditLog;
 import org.spring.steganography.Model.StegoRecords;
 import org.spring.steganography.Model.User;
 import org.spring.steganography.Service.AdminService;
@@ -79,6 +80,12 @@ public class AdminController {
     public ResponseEntity<List<StegoRecords>> getAllStegoRecords(){
         return ResponseEntity.ok(adminService.getAllStegoRecords());
     }
+
+    @GetMapping("/audit-logs")
+    public List<AuditLog> getLogs(){
+        return adminService.getLogs();
+    }
+
 
 
     private UserResponse mapToResponse(User user) {

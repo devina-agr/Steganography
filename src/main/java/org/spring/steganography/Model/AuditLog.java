@@ -1,19 +1,23 @@
 package org.spring.steganography.Model;
-
+import lombok.Builder;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.stereotype.Component;
+
 
 import java.time.LocalDateTime;
 
 @Document(collection = "AuditLog")
+@Builder
 public class AuditLog {
 
     @Id
     private String id;
-    private LocalDateTime timestamp;
     private String action;
-    private String userId;
+    private String performedBy;
+    private String targetId;
+    @Indexed(expireAfter = "P30D")
+    private LocalDateTime timestamp;
 
     public String getId() {
         return id;
@@ -21,14 +25,6 @@ public class AuditLog {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
     }
 
     public String getAction() {
@@ -39,11 +35,27 @@ public class AuditLog {
         this.action = action;
     }
 
-    public String getUserId() {
-        return userId;
+    public String getPerformedBy() {
+        return performedBy;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setPerformedBy(String performedBy) {
+        this.performedBy = performedBy;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public String getTargetId() {
+        return targetId;
+    }
+
+    public void setTargetId(String targetId) {
+        this.targetId = targetId;
     }
 }

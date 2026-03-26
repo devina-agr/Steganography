@@ -46,6 +46,7 @@ public class UserService {
                 .role(Set.of(Role.USER))
                 .createdAt(LocalDateTime.now())
                 .tokenVersion(0)
+                .enabled(true)
                 .build();
         return userRepo.save(user);
     }
