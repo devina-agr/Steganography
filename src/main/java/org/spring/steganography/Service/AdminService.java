@@ -73,7 +73,7 @@ public class AdminService {
         long stegoRecords=stegoRecordsRepo.count();
         Map<String,Object> stats=new HashMap<>();
         stats.put("totalUsers",userCount);
-        stats.put("totalStegoRecords",stegoRecords);
+            stats.put("totalStegoRecords",stegoRecords);
         return stats;
     }
 

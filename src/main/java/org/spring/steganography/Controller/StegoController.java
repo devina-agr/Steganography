@@ -14,6 +14,7 @@ import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/stego")
+@CrossOrigin(origins = "http://localhost:5173")
 public class StegoController {
 
     private final StegoService stegoService;
@@ -30,8 +31,8 @@ public class StegoController {
     }
 
     @PostMapping("/decode")
-    public ResponseEntity<String> decode(@AuthenticationPrincipal UserPrincipal userPrincipal,@RequestParam("recordId") String recordId,@RequestParam("secretKey") String secretKey){
-        return ResponseEntity.ok(stegoService.decodeMessage(userPrincipal.getUserId(),recordId,secretKey));
+    public ResponseEntity<String> decode(@AuthenticationPrincipal UserPrincipal userPrincipal,@RequestParam("encodedImage") MultipartFile image,@RequestParam("secretKey") String secretKey){
+        return ResponseEntity.ok(stegoService.decodeMessage(userPrincipal.getUserId(),image,secretKey));
     }
 
     @GetMapping("/records")

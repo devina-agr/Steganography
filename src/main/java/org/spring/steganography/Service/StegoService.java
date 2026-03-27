@@ -19,6 +19,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -134,22 +135,19 @@ public class StegoService {
             return (msgBytes[byteIndex]>>(7-bitIndex))&1;
     }
 
-    public String decodeMessage(String userId, String recordId, String secretKey) {
-        StegoRecords records=stegoRecordsRepo.findById(recordId).orElseThrow(()->new UserNotFoundException("Records not found!"));
-        if(!records.getUserId().equals(userId)){
-            throw new UnAuthorizedActionException("Access Denied!");
+    public String decodeMessage(String userId, MultipartFile encodedImage, String secretKey) {
+        try{
+            byte[] imageBytes=encodedImage.getBytes();
+            String encryptedMessage=extractMessage(imageBytes);
+            return decrypt(encryptedMessage,secretKey);
+        } catch (Exception e) {
+            throw new RuntimeException("Decoding failed!",e);
         }
-        String imageUrl=records.getEncodedImgUrl();
-        if(!SecurityUtils.hashToken(secretKey).equals(records.getSecretKeyHash())){
-            throw new UnAuthorizedActionException("Invalid secret key!");
-        }
-        String hiddenMessage=extractMessage(imageUrl);
-        return decrypt(hiddenMessage,secretKey);
     }
 
-    private String extractMessage(String imageUrl) {
+    private String extractMessage(byte[] imageBytes) {
         try{
-            BufferedImage img=ImageIO.read(new URL(imageUrl).openStream());
+            BufferedImage img=ImageIO.read(new ByteArrayInputStream(imageBytes));
             if(img==null){
                 throw new RuntimeException("Invalid image!");
             }
