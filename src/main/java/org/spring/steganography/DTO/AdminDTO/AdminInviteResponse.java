@@ -1,24 +1,29 @@
-package org.spring.steganography.DTO.UserDTO;
+package org.spring.steganography.DTO.AdminDTO;
 
 import java.time.LocalDateTime;
 
 public class AdminInviteResponse {
 
-    private String invitedToEmail;
+    private String email;
     private String invitedByEmail;
     private String inviteToken;
     private LocalDateTime expiresAt;
     private boolean used;
 
-    public AdminInviteResponse(String email, String invitedBy, String inviteToken, LocalDateTime expiresAt, boolean used, LocalDateTime sentAt) {
+    public AdminInviteResponse(String email, String invitedBy, String inviteToken, LocalDateTime expiresAt, boolean used) {
+        this.invitedByEmail=invitedBy;
+        this.email=email;
+        this.inviteToken=inviteToken;
+        this.expiresAt=expiresAt;
+        this.used=used;
     }
 
-    public String getInvitedToEmail() {
-        return invitedToEmail;
+    public String getEmail() {
+        return email;
     }
 
-    public void setInvitedToEmail(String invitedToEmail) {
-        this.invitedToEmail = invitedToEmail;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getInvitedByEmail() {

@@ -36,8 +36,14 @@ public class JWTServices {
     }
 
     public boolean validateToken(String token,TokenPayload payload){
-        String extractedEmail=extractEmail(token);
-        return extractedEmail.equals(payload.email()) && !isTokenExpired(token);
+        var claims=Jwts.parser()
+                .verifyWith((SecretKey) getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+        String email= claims.getSubject();
+        Integer tokenVersion =claims.get("tokenVersion",Integer.class);
+        return email.equals(payload.email()) && tokenVersion.equals(payload.tokenVersion()) && !isTokenExpired(token);
     }
 
     private boolean isTokenExpired(String token) {

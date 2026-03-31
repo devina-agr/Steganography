@@ -21,13 +21,11 @@ public class AdminService {
 
     private final UserRepo userRepo;
     private final StegoRecordsRepo stegoRecordsRepo;
-    private final AdminInvite adminInvite;
     private final AuditLogRepo auditLogRepo;
 
-    public AdminService(UserRepo userRepo, StegoRecordsRepo stegoRecordsRepo, AdminInvite adminInvite, AuditLogRepo auditLogRepo) {
+    public AdminService(UserRepo userRepo, StegoRecordsRepo stegoRecordsRepo, AuditLogRepo auditLogRepo) {
         this.userRepo = userRepo;
         this.stegoRecordsRepo = stegoRecordsRepo;
-        this.adminInvite = adminInvite;
         this.auditLogRepo = auditLogRepo;
     }
 

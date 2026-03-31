@@ -1,5 +1,6 @@
 package org.spring.steganography.Repository;
 
+import org.spring.steganography.Model.TokenType;
 import org.spring.steganography.Model.VerificationToken;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
@@ -10,4 +11,6 @@ public interface VerificationTokenRepository extends MongoRepository<Verificatio
     Optional<VerificationToken> findByToken(String token);
 
     void deleteByExpiryBefore(LocalDateTime now);
+
+    void deleteByUserIdAndType(String id, TokenType tokenType);
 }

@@ -2,11 +2,9 @@ package org.spring.steganography.Model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
-@Component
 @Document(collection = "AdminInvite")
 public class AdminInvite {
 
@@ -59,7 +57,7 @@ public class AdminInvite {
         this.inviteToken = inviteToken;
     }
 
-    public LocalDateTime getSentAt() {
+    public LocalDateTime getSentAt(LocalDateTime now) {
         return sentAt;
     }
 

@@ -55,8 +55,8 @@ public class UserService {
         return userRepo.findByEmail(email).orElseThrow(()->new UserNotFoundException("User not found!"));
     }
 
-    public void changePassword(String id, String oldPassword, String newPassword) {
-        User user=adminService.getById(id);
+    public void changePassword(String email, String oldPassword, String newPassword) {
+        User user=userRepo.findByEmail(email).orElseThrow(()->new RuntimeException("User not found!"));
         if(!passwordEncoder.matches(oldPassword,user.getPassword())){
              throw new UnAuthorizedActionException("Old password is incorrect.");
         }
@@ -97,7 +97,7 @@ public class UserService {
                 "Confirm Email Change",
                 """
                         Click the link below to confirm your email change:
-                         http://localhost:8080/api/users/email/confirm?token=%s
+                        http://localhost:5173/confirm-email?token=%s
                         This link will expire in 5 hours.
                       """
                         .formatted(rawToken)
@@ -134,6 +134,7 @@ public class UserService {
 
     public void forgotPassword(String email) {
         userRepo.findByEmail(email).ifPresent(user -> {
+            verificationTokenRepository.deleteByUserIdAndType(user.getId(),TokenType.PASSWORD_RESET);
             String rawToken= UUID.randomUUID().toString();
             String token=SecurityUtils.hashToken(rawToken);
             VerificationToken verificationToken=VerificationToken.builder()
@@ -148,7 +149,7 @@ public class UserService {
                     "Reset Your Password",
                     """
                             Click the link below to reset password:
-                             http://localhost:8080/api/users/reset-password?token=%s
+                             http://localhost:5173/reset-password?token=%s
                             This link will expire in 5 hours.
                          """
                             .formatted(rawToken)
@@ -165,7 +166,7 @@ public class UserService {
         if(verificationToken.getExpiry().isBefore(LocalDateTime.now())){
             throw new TokenExpiredException("Token expired.");
         }
-        User user=adminService.getById(verificationToken.getUserId());
+        User user=userRepo.findById(verificationToken.getUserId()).orElseThrow(()->new RuntimeException("User not found!"));
         user.setPassword(passwordEncoder.encode(newPassword));
         user.setTokenVersion(user.getTokenVersion()+1);
         userRepo.save(user);

@@ -39,26 +39,21 @@ public class UserController {
         return ResponseEntity.ok(mapToResponse(user));
     }
 
-    @PutMapping("/{id}/password")
-    @PreAuthorize("#id==authentication.principal.userId")
-    public ResponseEntity<String> changePassword(@PathVariable String id, @RequestBody ChangePasswordRequest request){
-        userService.changePassword(id,request.getOldPassword(),request.getNewPassword());
+    @PutMapping("/password")
+    public ResponseEntity<String> changePassword(@AuthenticationPrincipal UserPrincipal userPrincipal, @RequestBody ChangePasswordRequest request){
+        userService.changePassword(userPrincipal.getUsername(),request.getOldPassword(),request.getNewPassword());
         SecurityContextHolder.clearContext();
         return ResponseEntity.ok("Password updated successfully! Please login again.");
     }
 
     @PostMapping("/forgot-password")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<String> forgotPassword(@RequestBody ForgetPasswordRequest request){
         userService.forgotPassword(request.getEmail());
         return ResponseEntity.ok("Password resent link sent to your email.");
     }
 
-    @PostMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request){
-        userService.resetPassword(request.getToken(),request.getNewPassword());
-        SecurityContextHolder.clearContext();
-        return ResponseEntity.ok("Password reset successfully! Please login again.");
-    }
+
 
     @PostMapping("/email/request")
     public ResponseEntity<String> requestEmailChange(@AuthenticationPrincipal UserPrincipal userPrincipal, @RequestBody EmailChangeRequest emailChangeRequest){

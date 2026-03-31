@@ -9,4 +9,6 @@ import java.util.Optional;
 @Repository
 public interface AdminInviteRepo extends MongoRepository<AdminInvite,String> {
     Optional<AdminInvite> findByInvitedBy(String inviteToken);
+
+    Optional<AdminInvite> findByInviteToken(String inviteToken);
 }

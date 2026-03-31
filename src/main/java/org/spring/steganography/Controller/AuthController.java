@@ -3,14 +3,17 @@ package org.spring.steganography.Controller;
 import jakarta.validation.Valid;
 import org.spring.steganography.DTO.UserDTO.AuthRequest;
 import org.spring.steganography.DTO.UserDTO.AuthResponse;
+import org.spring.steganography.DTO.UserDTO.ChangePasswordDTO.ResetPasswordRequest;
 import org.spring.steganography.DTO.UserDTO.TokenPayload;
 import org.spring.steganography.Model.User;
 import org.spring.steganography.Security.JWTServices;
 import org.spring.steganography.Service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -55,5 +58,12 @@ public class AuthController {
         String token=jwtServices.generateToken(payload);
         AuthResponse response=new AuthResponse(token,user.getEmail(),user.getRole().stream().map(Enum::name).toList());
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request){
+        userService.resetPassword(request.getToken(),request.getNewPassword());
+        SecurityContextHolder.clearContext();
+        return ResponseEntity.ok("Password reset successfully! Please login again.");
     }
 }
