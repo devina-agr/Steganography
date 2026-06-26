@@ -76,6 +76,7 @@ public class UserController {
                 .email(user.getEmail())
                 .role(user.getRole().stream().map(Enum::name).collect(Collectors.toSet()))
                 .createdAt(user.getCreatedAt())
+                .banned(user.isBanned())
                 .build();
     }
 }

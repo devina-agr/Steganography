@@ -13,6 +13,7 @@ public class UserResponse {
     private String email;
     private Set<String> role;
     private LocalDateTime createdAt;
+    private boolean banned;
 
     public String getId() {
         return id;
@@ -28,5 +29,9 @@ public class UserResponse {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public boolean isBanned() {
+        return banned;
     }
 }

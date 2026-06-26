@@ -117,6 +117,7 @@ public class AdminController {
     }
 
     @PostMapping("/register")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<String> registerAdmin(@RequestParam String token, @RequestBody AdminRegisterRequest request){
         AdminInvite adminInvite=adminInviteService.validateInvite(token);
         if(userRepo.findByEmail(adminInvite.getEmail()).isPresent()){
@@ -159,6 +160,7 @@ public class AdminController {
                 .email(user.getEmail())
                 .role(user.getRole().stream().map(Enum::name).collect(Collectors.toSet()))
                 .createdAt(user.getCreatedAt())
+                .banned(user.isBanned())
                 .build();
     }
 }
