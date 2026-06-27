@@ -97,7 +97,7 @@ public class UserService {
                 "Confirm Email Change",
                 """
                         Click the link below to confirm your email change:
-                        http://localhost:5173/confirm-email?token=%s
+                        https://steganography-frontend-chi.vercel.app/confirm-email?token=%s
                         This link will expire in 5 hours.
                       """
                         .formatted(rawToken)
@@ -149,7 +149,7 @@ public class UserService {
                     "Reset Your Password",
                     """
                             Click the link below to reset password:
-                             http://localhost:5173/reset-password?token=%s
+                             https://steganography-frontend-chi.vercel.app/reset-password?token=%s
                             This link will expire in 5 hours.
                          """
                             .formatted(rawToken)

@@ -36,7 +36,7 @@ public class AdminInviteService {
                 """
                         You are invited as ADMIN.
                         Click the link below to register:
-                         http://localhost:5173/admin-register?token=%s
+                         https://steganography-frontend-chi.vercel.app/admin-register?token=%s
                          This link will expire in 5 hours.
                      """
                         .formatted(token)
