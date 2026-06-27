@@ -21,8 +21,6 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/users")
-@PreAuthorize("hasRole('USER')")
-@CrossOrigin(origins = "http://localhost:5173")
 public class UserController {
 
     private final AdminService adminService;
@@ -33,12 +31,14 @@ public class UserController {
         this.adminService = adminService;
     }
 
+    @PreAuthorize("hasRole('USER')")
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getCurrentUser(@AuthenticationPrincipal UserPrincipal principal){
         User user=adminService.getById(principal.getUserId());
         return ResponseEntity.ok(mapToResponse(user));
     }
 
+    @PreAuthorize("hasRole('USER')")
     @PutMapping("/password")
     public ResponseEntity<String> changePassword(@AuthenticationPrincipal UserPrincipal userPrincipal, @RequestBody ChangePasswordRequest request){
         userService.changePassword(userPrincipal.getUsername(),request.getOldPassword(),request.getNewPassword());
@@ -54,7 +54,7 @@ public class UserController {
     }
 
 
-
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/email/request")
     public ResponseEntity<String> requestEmailChange(@AuthenticationPrincipal UserPrincipal userPrincipal, @RequestBody EmailChangeRequest emailChangeRequest){
             userService.requestEmailChange(userPrincipal.getUserId(),emailChangeRequest.getNewEmail(),emailChangeRequest.getPassword());
