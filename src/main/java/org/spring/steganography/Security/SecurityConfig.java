@@ -36,7 +36,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/admin/register").permitAll()
                         .requestMatchers("/api/users/forgot-password").permitAll()
-                        .requestMatchers("api/users/email/confirm").permitAll()
+                        .requestMatchers("/api/users/email/confirm").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
