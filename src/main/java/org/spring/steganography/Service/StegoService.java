@@ -197,7 +197,7 @@ public class StegoService {
 
     public Page<StegoResponse> getUserRecords(String userId, int page, int size) {
         return stegoRecordsRepo.findByUserId(userId, PageRequest.of(page,size))
-                               .map(record->new StegoResponse(record.getId(),record.getEncodedImgUrl(),null));
+                               .map(record->new StegoResponse(record.getId(),record.getEncodedImageUrl(),null));
     }
 
     public void deleteRecord(String userId, String recordId) {
